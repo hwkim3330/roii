@@ -7,6 +7,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <style>
         * {
@@ -422,6 +423,66 @@
             border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
+        .opacity-control {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(26, 26, 46, 0.95);
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            min-width: 200px;
+        }
+
+        .opacity-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #3B82F6;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .opacity-value {
+            color: #E2E8F0;
+            font-weight: 600;
+        }
+
+        .opacity-slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(59, 130, 246, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .opacity-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        }
+
+        .opacity-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+        }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
         ::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 4px; }
@@ -572,6 +633,15 @@
                     <strong>🔗 Connect:</strong> Click devices to link
                 </div>
 
+                <div class="opacity-control">
+                    <div class="opacity-label">
+                        <span>Vehicle Opacity</span>
+                        <span class="opacity-value" id="opacityValue">30%</span>
+                    </div>
+                    <input type="range" class="opacity-slider" id="opacitySlider"
+                           min="0" max="100" value="30" step="5">
+                </div>
+
                 <div class="floating-controls">
                     <div class="control-btn" id="selectBtn" title="선택 모드">👆</div>
                     <div class="control-btn" id="rotateBtn" title="자동 회전">🔄</div>
@@ -677,25 +747,96 @@
 
         // 차량 모델 생성
         let vehicleModel = null;
+        let vehicleMeshes = [];  // 투명도 조절을 위한 메시 배열
+        let vehicleWireframes = [];  // 와이어프레임 배열
+        let vehicleOpacity = 0.3;  // 기본 투명도 30%
 
         function createVehicleModel() {
             const group = new THREE.Group();
             group.userData.isVehicle = true;
             group.userData.label = 'Vehicle';
 
-            // 차체 (더 큰 스케일)
+            // GLTFLoader로 roii.glb 로드 시도
+            const loader = new THREE.GLTFLoader();
+            loader.load(
+                'roii.glb',
+                function (gltf) {
+                    console.log('GLB file loaded successfully');
+                    const model = gltf.scene;
+
+                    // 모델 스케일 조정 (필요시)
+                    model.scale.set(10, 10, 10);
+
+                    // 모든 메시에 대해 투명도 및 와이어프레임 설정
+                    model.traverse((child) => {
+                        if (child.isMesh) {
+                            // 원본 메시를 반투명하게
+                            if (child.material) {
+                                if (Array.isArray(child.material)) {
+                                    child.material.forEach(mat => {
+                                        mat.transparent = true;
+                                        mat.opacity = vehicleOpacity;
+                                        mat.side = THREE.DoubleSide;
+                                    });
+                                } else {
+                                    child.material.transparent = true;
+                                    child.material.opacity = vehicleOpacity;
+                                    child.material.side = THREE.DoubleSide;
+                                }
+                            }
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            vehicleMeshes.push(child);
+
+                            // 와이어프레임 추가 (뼈대)
+                            const edges = new THREE.EdgesGeometry(child.geometry);
+                            const lineMat = new THREE.LineBasicMaterial({
+                                color: 0x3B82F6,
+                                linewidth: 2
+                            });
+                            const wireframe = new THREE.LineSegments(edges, lineMat);
+                            child.add(wireframe);
+                            vehicleWireframes.push(wireframe);
+                        }
+                    });
+
+                    group.add(model);
+                    scene.add(group);
+                    vehicleModel = group;
+                    showToast('3D vehicle model loaded');
+                },
+                function (xhr) {
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                },
+                function (error) {
+                    console.log('GLB loading failed, using fallback box model:', error);
+                    // Fallback: 기존 박스 모델 사용
+                    createFallbackVehicle(group);
+                }
+            );
+
+            return group;
+        }
+
+        // Fallback 박스 모델 생성
+        function createFallbackVehicle(group) {
+            vehicleMeshes = [];
+            vehicleWireframes = [];
+
+            // 차체
             const bodyGeo = new THREE.BoxGeometry(18, 5, 40);
             const bodyMat = new THREE.MeshPhongMaterial({
                 color: 0x1E293B,
                 shininess: 80,
                 transparent: true,
-                opacity: 0.7
+                opacity: vehicleOpacity
             });
             const body = new THREE.Mesh(bodyGeo, bodyMat);
             body.position.y = 2.5;
             body.castShadow = true;
             body.receiveShadow = true;
             group.add(body);
+            vehicleMeshes.push(body);
 
             // 윤곽선
             const bodyEdges = new THREE.EdgesGeometry(bodyGeo);
@@ -703,48 +844,62 @@
             const bodyWireframe = new THREE.LineSegments(bodyEdges, bodyLineMat);
             bodyWireframe.position.copy(body.position);
             group.add(bodyWireframe);
+            vehicleWireframes.push(bodyWireframe);
 
-            // 캐빈 (차량 상단)
+            // 캐빈
             const cabinGeo = new THREE.BoxGeometry(14, 4, 20);
-            const cabin = new THREE.Mesh(cabinGeo, bodyMat);
+            const cabin = new THREE.Mesh(cabinGeo, bodyMat.clone());
+            cabin.material.transparent = true;
+            cabin.material.opacity = vehicleOpacity;
             cabin.position.set(0, 6.5, -2);
             cabin.castShadow = true;
             group.add(cabin);
+            vehicleMeshes.push(cabin);
 
             const cabinEdges = new THREE.EdgesGeometry(cabinGeo);
             const cabinWireframe = new THREE.LineSegments(cabinEdges, bodyLineMat);
             cabinWireframe.position.copy(cabin.position);
             group.add(cabinWireframe);
+            vehicleWireframes.push(cabinWireframe);
 
-            // 후드 (앞)
+            // 후드
             const hoodGeo = new THREE.BoxGeometry(16, 3, 10);
-            const hood = new THREE.Mesh(hoodGeo, bodyMat);
+            const hood = new THREE.Mesh(hoodGeo, bodyMat.clone());
+            hood.material.transparent = true;
+            hood.material.opacity = vehicleOpacity;
             hood.position.set(0, 2.5, 20);
             hood.castShadow = true;
             group.add(hood);
+            vehicleMeshes.push(hood);
 
             const hoodEdges = new THREE.EdgesGeometry(hoodGeo);
             const hoodWireframe = new THREE.LineSegments(hoodEdges, bodyLineMat);
             hoodWireframe.position.copy(hood.position);
             group.add(hoodWireframe);
+            vehicleWireframes.push(hoodWireframe);
 
             // 바퀴
             const wheelGeo = new THREE.CylinderGeometry(2.5, 2.5, 3, 16);
-            const wheelMat = new THREE.MeshPhongMaterial({ color: 0x1A1A1A });
+            const wheelMat = new THREE.MeshPhongMaterial({
+                color: 0x1A1A1A,
+                transparent: true,
+                opacity: vehicleOpacity
+            });
 
             const wheelPositions = [
-                [-10, 1.5, 12],   // 앞 왼쪽
-                [10, 1.5, 12],    // 앞 오른쪽
-                [-10, 1.5, -12],  // 뒤 왼쪽
-                [10, 1.5, -12]    // 뒤 오른쪽
+                [-10, 1.5, 12], [10, 1.5, 12],
+                [-10, 1.5, -12], [10, 1.5, -12]
             ];
 
             wheelPositions.forEach(pos => {
-                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                const wheel = new THREE.Mesh(wheelGeo, wheelMat.clone());
+                wheel.material.transparent = true;
+                wheel.material.opacity = vehicleOpacity;
                 wheel.rotation.z = Math.PI / 2;
                 wheel.position.set(...pos);
                 wheel.castShadow = true;
                 group.add(wheel);
+                vehicleMeshes.push(wheel);
             });
 
             // 헤드라이트
@@ -752,35 +907,39 @@
             const headlightMat = new THREE.MeshPhongMaterial({
                 color: 0xFFFFFF,
                 emissive: 0x3B82F6,
-                emissiveIntensity: 0.8
+                emissiveIntensity: 0.8,
+                transparent: true,
+                opacity: vehicleOpacity
             });
 
-            const headlight1 = new THREE.Mesh(headlightGeo, headlightMat);
-            headlight1.rotation.x = Math.PI / 2;
-            headlight1.position.set(-6, 2.5, 25);
-            group.add(headlight1);
-
-            const headlight2 = new THREE.Mesh(headlightGeo, headlightMat);
-            headlight2.rotation.x = Math.PI / 2;
-            headlight2.position.set(6, 2.5, 25);
-            group.add(headlight2);
+            [[-6, 2.5, 25], [6, 2.5, 25]].forEach(pos => {
+                const headlight = new THREE.Mesh(headlightGeo, headlightMat.clone());
+                headlight.material.transparent = true;
+                headlight.material.opacity = vehicleOpacity;
+                headlight.rotation.x = Math.PI / 2;
+                headlight.position.set(...pos);
+                group.add(headlight);
+                vehicleMeshes.push(headlight);
+            });
 
             // 테일라이트
             const taillightMat = new THREE.MeshPhongMaterial({
                 color: 0xFF0000,
                 emissive: 0xFF0000,
-                emissiveIntensity: 0.5
+                emissiveIntensity: 0.5,
+                transparent: true,
+                opacity: vehicleOpacity
             });
 
-            const taillight1 = new THREE.Mesh(headlightGeo, taillightMat);
-            taillight1.rotation.x = Math.PI / 2;
-            taillight1.position.set(-6, 2.5, -20);
-            group.add(taillight1);
-
-            const taillight2 = new THREE.Mesh(headlightGeo, taillightMat);
-            taillight2.rotation.x = Math.PI / 2;
-            taillight2.position.set(6, 2.5, -20);
-            group.add(taillight2);
+            [[-6, 2.5, -20], [6, 2.5, -20]].forEach(pos => {
+                const taillight = new THREE.Mesh(headlightGeo, taillightMat.clone());
+                taillight.material.transparent = true;
+                taillight.material.opacity = vehicleOpacity;
+                taillight.rotation.x = Math.PI / 2;
+                taillight.position.set(...pos);
+                group.add(taillight);
+                vehicleMeshes.push(taillight);
+            });
 
             // 차량 라벨
             const canvas = document.createElement('canvas');
@@ -804,8 +963,22 @@
             group.position.set(0, 0, 0);
             vehicleModel = group;
             scene.add(group);
+        }
 
-            return group;
+        // 차량 투명도 업데이트 함수
+        function updateVehicleOpacity(opacity) {
+            vehicleOpacity = opacity;
+            vehicleMeshes.forEach(mesh => {
+                if (mesh.material) {
+                    if (Array.isArray(mesh.material)) {
+                        mesh.material.forEach(mat => {
+                            mat.opacity = opacity;
+                        });
+                    } else {
+                        mesh.material.opacity = opacity;
+                    }
+                }
+            });
         }
 
         // 장치 템플릿
@@ -1498,6 +1671,16 @@
             a.download = `roii-vehicle-tsn-${Date.now()}.json`;
             a.click();
             showToast('Configuration exported');
+        });
+
+        // 투명도 슬라이더 이벤트
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+
+        opacitySlider.addEventListener('input', function() {
+            const opacity = this.value / 100;
+            updateVehicleOpacity(opacity);
+            opacityValue.textContent = this.value + '%';
         });
 
         // 애니메이션 루프

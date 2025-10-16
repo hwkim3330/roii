@@ -793,38 +793,44 @@
                     console.log('📐 Auto-scale factor:', scale.toFixed(3));
                     model.scale.set(scale, scale, scale);
 
-                    // 모든 메시에 대해 투명도 및 와이어프레임 설정
+                    // 모든 메시에 대해 텍스처만 보이게 + 투명도 설정
+                    console.log('🔍 Model Structure Analysis:');
+                    let meshIndex = 0;
                     model.traverse((child) => {
                         if (child.isMesh) {
-                            // 원본 메시를 반투명하게
+                            // 메시 정보 로깅
+                            const bbox = new THREE.Box3().setFromObject(child);
+                            const meshSize = bbox.getSize(new THREE.Vector3());
+                            const meshCenter = child.getWorldPosition(new THREE.Vector3());
+
+                            console.log(`  Mesh ${meshIndex}: ${child.name || 'unnamed'}`);
+                            console.log(`    Position: (${meshCenter.x.toFixed(2)}, ${meshCenter.y.toFixed(2)}, ${meshCenter.z.toFixed(2)})`);
+                            console.log(`    Size: (${meshSize.x.toFixed(2)}, ${meshSize.y.toFixed(2)}, ${meshSize.z.toFixed(2)})`);
+                            console.log(`    Material:`, child.material.name || 'unnamed');
+                            meshIndex++;
+
+                            // 텍스처만 보이게 (기존 재질 유지, wireframe 제거)
                             if (child.material) {
                                 if (Array.isArray(child.material)) {
                                     child.material.forEach(mat => {
                                         mat.transparent = true;
                                         mat.opacity = vehicleOpacity;
                                         mat.side = THREE.DoubleSide;
+                                        mat.depthWrite = true;
                                     });
                                 } else {
                                     child.material.transparent = true;
                                     child.material.opacity = vehicleOpacity;
                                     child.material.side = THREE.DoubleSide;
+                                    child.material.depthWrite = true;
                                 }
                             }
                             child.castShadow = true;
                             child.receiveShadow = true;
                             vehicleMeshes.push(child);
-
-                            // 와이어프레임 추가 (뼈대)
-                            const edges = new THREE.EdgesGeometry(child.geometry);
-                            const lineMat = new THREE.LineBasicMaterial({
-                                color: 0x3B82F6,
-                                linewidth: 2
-                            });
-                            const wireframe = new THREE.LineSegments(edges, lineMat);
-                            child.add(wireframe);
-                            vehicleWireframes.push(wireframe);
                         }
                     });
+                    console.log(`📊 Total meshes: ${meshIndex}`);
 
                     group.add(model);
                     scene.add(group);
@@ -1026,7 +1032,21 @@
             return device;
         }
 
-        // 빛나는 Tube 연결 생성
+        // 심플 라인 생성 (기본 상태)
+        function createSimpleLine(from, to, color = 0x3B82F6) {
+            const points = [from.clone(), to.clone()];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.3,
+                linewidth: 1
+            });
+            const line = new THREE.Line(geometry, material);
+            return line;
+        }
+
+        // 빛나는 Tube 연결 생성 (선택 시)
         function createGlowingTube(from, to, color = 0x3B82F6) {
             const curve = new THREE.CatmullRomCurve3([
                 from.clone(),
@@ -1057,7 +1077,7 @@
             return { tube, glow, curve };
         }
 
-        // 흐르는 파티클 생성
+        // 흐르는 파티클 생성 (선택 시)
         function createFlowParticles(curve, color = 0x00BCD4, count = 3) {
             const particles = [];
             for (let i = 0; i < count; i++) {
@@ -1071,13 +1091,14 @@
                 particle.userData.progress = i / count;
                 particle.userData.curve = curve;
                 particle.userData.speed = 0.008 + Math.random() * 0.004;
+                particle.visible = false; // 기본은 숨김
                 particles.push(particle);
                 scene.add(particle);
             }
             return particles;
         }
 
-        // 연결 생성 (Glowing Tube + Particles)
+        // 연결 생성 (기본은 심플 라인)
         function createConnection(from, to) {
             // 중복 체크
             const exists = state.connections.some(conn =>
@@ -1093,38 +1114,56 @@
             const color = from.type === 'lidar' || to.type === 'lidar' ? 0x10B981 :
                          from.type === 'lan9692' || to.type === 'lan9692' ? 0xFFD700 : 0x3B82F6;
 
-            const { tube, glow, curve } = createGlowingTube(from.position, to.position, color);
+            // 기본: 심플 라인
+            const simpleLine = createSimpleLine(from.position, to.position, color);
+            scene.add(simpleLine);
+
+            // 선택 시용: Glowing tube + particles (초기 숨김)
+            const curve = new THREE.CatmullRomCurve3([from.position.clone(), to.position.clone()]);
+            const { tube, glow } = createGlowingTube(from.position, to.position, color);
             const particles = createFlowParticles(curve, color === 0xFFD700 ? 0xFFF4CC : 0x00BCD4, 3);
 
+            tube.visible = false;
+            glow.visible = false;
             scene.add(tube);
             scene.add(glow);
 
             const conn = {
                 from,
                 to,
+                simpleLine,
                 tube,
                 glow,
                 curve,
                 particles,
-                color
+                color,
+                highlighted: false
             };
             state.connections.push(conn);
             updateStats();
         }
 
-        // 연결 업데이트
+        // 연결 업데이트 (드래그 시)
         function updateConnections() {
             state.connections.forEach(conn => {
-                // Remove old geometry
+                // Simple line 업데이트
+                const points = [conn.from.position, conn.to.position];
+                conn.simpleLine.geometry.setFromPoints(points);
+
+                // Glowing tube & particles 업데이트
                 if (conn.tube) {
                     scene.remove(conn.tube);
                     scene.remove(conn.glow);
                     conn.particles.forEach(p => scene.remove(p));
                 }
 
-                // Create new geometry with updated positions
-                const { tube, glow, curve } = createGlowingTube(conn.from.position, conn.to.position, conn.color);
+                const curve = new THREE.CatmullRomCurve3([conn.from.position.clone(), conn.to.position.clone()]);
+                const { tube, glow } = createGlowingTube(conn.from.position, conn.to.position, conn.color);
                 const particles = createFlowParticles(curve, conn.color === 0xFFD700 ? 0xFFF4CC : 0x00BCD4, 3);
+
+                tube.visible = conn.highlighted;
+                glow.visible = conn.highlighted;
+                particles.forEach(p => p.visible = conn.highlighted);
 
                 scene.add(tube);
                 scene.add(glow);
@@ -1269,7 +1308,41 @@
             return null;
         }
 
+        // 연결 하이라이트/언하이라이트
+        function highlightConnections(device) {
+            state.connections.forEach(conn => {
+                const isConnected = conn.from.id === device.id || conn.to.id === device.id;
+
+                if (isConnected) {
+                    // 선택된 디바이스의 연결: 빛나게
+                    conn.simpleLine.visible = false;
+                    conn.tube.visible = true;
+                    conn.glow.visible = true;
+                    conn.particles.forEach(p => p.visible = true);
+                    conn.highlighted = true;
+                } else {
+                    // 다른 연결: 심플 라인만
+                    conn.simpleLine.visible = true;
+                    conn.tube.visible = false;
+                    conn.glow.visible = false;
+                    conn.particles.forEach(p => p.visible = false);
+                    conn.highlighted = false;
+                }
+            });
+        }
+
+        function unhighlightAllConnections() {
+            state.connections.forEach(conn => {
+                conn.simpleLine.visible = true;
+                conn.tube.visible = false;
+                conn.glow.visible = false;
+                conn.particles.forEach(p => p.visible = false);
+                conn.highlighted = false;
+            });
+        }
+
         function selectDevice(device) {
+            // 이전 선택 해제
             if (state.selected && state.selected.mesh) {
                 state.selected.mesh.traverse(child => {
                     if (child.material && child.material.emissive) {
@@ -1277,10 +1350,12 @@
                         child.material.emissiveIntensity = 0;
                     }
                 });
+                unhighlightAllConnections();
             }
 
             state.selected = device;
 
+            // 새 선택
             if (device && device.mesh) {
                 device.mesh.traverse(child => {
                     if (child.material && child.material.emissive) {
@@ -1288,6 +1363,7 @@
                         child.material.emissiveIntensity = 0.8;
                     }
                 });
+                highlightConnections(device);
                 showProperties(device);
             }
         }
@@ -1567,6 +1643,7 @@
                 state.connections = state.connections.filter(conn => {
                     if (conn.from.id === state.selected.id || conn.to.id === state.selected.id) {
                         // Remove all connection components
+                        if (conn.simpleLine) scene.remove(conn.simpleLine);
                         if (conn.tube) scene.remove(conn.tube);
                         if (conn.glow) scene.remove(conn.glow);
                         if (conn.particles) {
@@ -1658,29 +1735,31 @@
             requestAnimationFrame(animate);
             controls.update();
 
-            // 파티클 애니메이션 (경로를 따라 흐름)
+            // 파티클 애니메이션 (선택된 연결만)
             state.connections.forEach(conn => {
-                if (conn.particles) {
+                if (conn.highlighted && conn.particles && conn.particles.length > 0) {
                     conn.particles.forEach(particle => {
-                        particle.userData.progress += particle.userData.speed;
-                        if (particle.userData.progress > 1) {
-                            particle.userData.progress = 0;
+                        if (particle.visible) {
+                            particle.userData.progress += particle.userData.speed;
+                            if (particle.userData.progress > 1) {
+                                particle.userData.progress = 0;
+                            }
+
+                            // 곡선을 따라 파티클 위치 업데이트
+                            const point = particle.userData.curve.getPoint(particle.userData.progress);
+                            particle.position.copy(point);
+
+                            // Fade in/out effect
+                            particle.material.opacity = Math.sin(particle.userData.progress * Math.PI) * 0.9 + 0.1;
+                            particle.scale.setScalar(1 + Math.sin(particle.userData.progress * Math.PI * 2) * 0.3);
                         }
-
-                        // 곡선을 따라 파티클 위치 업데이트
-                        const point = particle.userData.curve.getPoint(particle.userData.progress);
-                        particle.position.copy(point);
-
-                        // Fade in/out effect
-                        particle.material.opacity = Math.sin(particle.userData.progress * Math.PI) * 0.9 + 0.1;
-                        particle.scale.setScalar(1 + Math.sin(particle.userData.progress * Math.PI * 2) * 0.3);
                     });
-                }
 
-                // Tube glow pulse
-                if (conn.tube && conn.tube.material) {
-                    conn.tube.material.emissiveIntensity = 0.5 + Math.sin(Date.now() * 0.002) * 0.2;
-                    conn.glow.material.opacity = 0.15 + Math.sin(Date.now() * 0.003) * 0.1;
+                    // Tube glow pulse (선택된 연결만)
+                    if (conn.tube && conn.tube.visible && conn.tube.material) {
+                        conn.tube.material.emissiveIntensity = 0.5 + Math.sin(Date.now() * 0.002) * 0.2;
+                        conn.glow.material.opacity = 0.15 + Math.sin(Date.now() * 0.003) * 0.1;
+                    }
                 }
             });
 

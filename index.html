@@ -1206,7 +1206,7 @@
             });
         }
 
-        // 차량 시나리오 로드
+        // 차량 시나리오 로드 - Standard Zone Architecture
         function loadVehicleScenario() {
             // 기존 장치 및 연결 모두 제거
             state.connections.forEach(conn => scene.remove(conn.line));
@@ -1223,78 +1223,85 @@
                 createVehicleModel();
             }
 
-            // Zone Controllers 배치 (차량 하부/내부)
-            const zc1 = addDevice('lan9692', new THREE.Vector3(-4, -1, 8), 'Front-ZC');
-            const zc2 = addDevice('lan9692', new THREE.Vector3(4, -1, -8), 'Rear-ZC');
+            // === ZONE CONTROLLERS (차량 하부) ===
+            const frontZC = addDevice('lan9692', new THREE.Vector3(0, -2, 10), 'Front-ZC');
+            const rearZC = addDevice('lan9692', new THREE.Vector3(0, -2, -10), 'Rear-ZC');
 
-            // === 카메라 배치 ===
-            // 전방 카메라 - 앞유리 위 (windshield)
-            const frontCamCenter = addDevice('camera', new THREE.Vector3(0, 8.5, 10), 'Front-Cam-Center');
+            // === FRONT ZONE (전방) ===
+            // Front Center Camera - windshield top center
+            const frontCamCenter = addDevice('camera', new THREE.Vector3(0, 8.5, 14), 'Front-Center-Cam');
 
-            // 전방 사이드 카메라 - 사이드 미러 위치
-            const frontCamL = addDevice('camera', new THREE.Vector3(-9, 5, 14), 'Front-Cam-L');
-            const frontCamR = addDevice('camera', new THREE.Vector3(9, 5, 14), 'Front-Cam-R');
+            // Front Wide Cameras - A-pillar left/right
+            const frontCamWideL = addDevice('camera', new THREE.Vector3(-7, 7, 16), 'Front-Wide-L');
+            const frontCamWideR = addDevice('camera', new THREE.Vector3(7, 7, 16), 'Front-Wide-R');
 
-            // 후방 카메라 - 트렁크/테일게이트
-            const rearCam = addDevice('camera', new THREE.Vector3(0, 3.5, -20.5), 'Rear-Cam');
+            // Front Radars - bumper corners
+            const frontRadarL = addDevice('radar', new THREE.Vector3(-8.5, 1.5, 25), 'Front-Radar-L');
+            const frontRadarR = addDevice('radar', new THREE.Vector3(8.5, 1.5, 25), 'Front-Radar-R');
 
-            // 측면 카메라 - 사이드 미러
-            const leftCam = addDevice('camera', new THREE.Vector3(-9.5, 5, 0), 'Left-Mirror-Cam');
-            const rightCam = addDevice('camera', new THREE.Vector3(9.5, 5, 0), 'Right-Mirror-Cam');
+            // === SIDE ZONES (측면) ===
+            // Side Mirror Cameras
+            const leftMirrorCam = addDevice('camera', new THREE.Vector3(-9.5, 5.5, 5), 'Left-Mirror-Cam');
+            const rightMirrorCam = addDevice('camera', new THREE.Vector3(9.5, 5.5, 5), 'Right-Mirror-Cam');
 
-            // === 레이더 배치 ===
-            // 전방 레이더 - 전방 범퍼 코너
-            const frontRadarL = addDevice('radar', new THREE.Vector3(-8, 1.5, 25), 'Front-Radar-L');
-            const frontRadarR = addDevice('radar', new THREE.Vector3(8, 1.5, 25), 'Front-Radar-R');
+            // Side Radars - door panels (front/rear on each side)
+            const leftRadarFront = addDevice('radar', new THREE.Vector3(-9.5, 2.5, 10), 'Left-Front-Radar');
+            const leftRadarRear = addDevice('radar', new THREE.Vector3(-9.5, 2.5, -5), 'Left-Rear-Radar');
+            const rightRadarFront = addDevice('radar', new THREE.Vector3(9.5, 2.5, 10), 'Right-Front-Radar');
+            const rightRadarRear = addDevice('radar', new THREE.Vector3(9.5, 2.5, -5), 'Right-Rear-Radar');
 
-            // 후방 레이더 - 후방 범퍼 코너
-            const rearRadarL = addDevice('radar', new THREE.Vector3(-8, 1.5, -20), 'Rear-Radar-L');
-            const rearRadarR = addDevice('radar', new THREE.Vector3(8, 1.5, -20), 'Rear-Radar-R');
+            // === REAR ZONE (후방) ===
+            // Rear Center Camera - tailgate
+            const rearCamCenter = addDevice('camera', new THREE.Vector3(0, 3.5, -20.5), 'Rear-Center-Cam');
 
-            // 측면 레이더 - 차체 측면
-            const leftRadarFront = addDevice('radar', new THREE.Vector3(-9.5, 2.5, 8), 'Left-Radar-F');
-            const leftRadarRear = addDevice('radar', new THREE.Vector3(-9.5, 2.5, -8), 'Left-Radar-R');
-            const rightRadarFront = addDevice('radar', new THREE.Vector3(9.5, 2.5, 8), 'Right-Radar-F');
-            const rightRadarRear = addDevice('radar', new THREE.Vector3(9.5, 2.5, -8), 'Right-Radar-R');
+            // Rear Radars - bumper (4 radars for full coverage)
+            const rearRadarLL = addDevice('radar', new THREE.Vector3(-8.5, 1.5, -20), 'Rear-Left-Out');
+            const rearRadarLI = addDevice('radar', new THREE.Vector3(-4, 1.5, -20.5), 'Rear-Left-In');
+            const rearRadarRI = addDevice('radar', new THREE.Vector3(4, 1.5, -20.5), 'Rear-Right-In');
+            const rearRadarRR = addDevice('radar', new THREE.Vector3(8.5, 1.5, -20), 'Rear-Right-Out');
 
-            // === LiDAR - 루프 상단 ===
-            const lidarTop = addDevice('lidar', new THREE.Vector3(0, 10.5, 0), 'Roof-LiDAR');
+            // === TOP (상단) ===
+            // Roof LiDAR - center top
+            const roofLidar = addDevice('lidar', new THREE.Vector3(0, 10.5, 2), 'Roof-LiDAR');
 
-            // === ECUs - 차량 하부 ===
-            const ecu1 = addDevice('ecu', new THREE.Vector3(-3, -1, -12), 'ADAS-ECU');
-            const ecu2 = addDevice('ecu', new THREE.Vector3(3, -1, -12), 'Chassis-ECU');
+            // === ECUs (차량 하부 중앙) ===
+            const adasECU = addDevice('ecu', new THREE.Vector3(-4, -2, 0), 'ADAS-ECU');
+            const chassisECU = addDevice('ecu', new THREE.Vector3(4, -2, 0), 'Chassis-ECU');
 
-            // === 연결: Front Zone Controller (전방 영역) ===
-            createConnection(zc1, frontCamCenter);
-            createConnection(zc1, frontCamL);
-            createConnection(zc1, frontCamR);
-            createConnection(zc1, leftCam);
-            createConnection(zc1, frontRadarL);
-            createConnection(zc1, frontRadarR);
-            createConnection(zc1, leftRadarFront);
-            createConnection(zc1, rightRadarFront);
-            createConnection(zc1, lidarTop);
+            // === CONNECTIONS: Front Zone ===
+            createConnection(frontZC, frontCamCenter);
+            createConnection(frontZC, frontCamWideL);
+            createConnection(frontZC, frontCamWideR);
+            createConnection(frontZC, frontRadarL);
+            createConnection(frontZC, frontRadarR);
+            createConnection(frontZC, leftMirrorCam);
+            createConnection(frontZC, leftRadarFront);
+            createConnection(frontZC, rightMirrorCam);
+            createConnection(frontZC, rightRadarFront);
+            createConnection(frontZC, roofLidar);
 
-            // === 연결: Rear Zone Controller (후방 영역) ===
-            createConnection(zc2, rearCam);
-            createConnection(zc2, rightCam);
-            createConnection(zc2, rearRadarL);
-            createConnection(zc2, rearRadarR);
-            createConnection(zc2, leftRadarRear);
-            createConnection(zc2, rightRadarRear);
+            // === CONNECTIONS: Rear Zone ===
+            createConnection(rearZC, rearCamCenter);
+            createConnection(rearZC, rearRadarLL);
+            createConnection(rearZC, rearRadarLI);
+            createConnection(rearZC, rearRadarRI);
+            createConnection(rearZC, rearRadarRR);
+            createConnection(rearZC, leftRadarRear);
+            createConnection(rearZC, rightRadarRear);
 
-            // === 연결: Zone Controllers to ECUs ===
-            createConnection(zc1, ecu1);
-            createConnection(zc2, ecu2);
-            createConnection(zc1, zc2);
+            // === CONNECTIONS: Controllers & ECUs ===
+            createConnection(frontZC, adasECU);
+            createConnection(rearZC, chassisECU);
+            createConnection(frontZC, rearZC);
+            createConnection(adasECU, chassisECU);
 
-            // 카메라 위치 조정 (전체 차량이 보이도록)
+            // 카메라 위치 조정
             camera.position.set(50, 35, 70);
             controls.target.set(0, 0, 0);
             controls.update();
 
             updateStats();
-            showToast('🚗 Vehicle scenario loaded - Realistic sensor placement');
+            showToast('🚗 Standard Zone Architecture loaded - Production layout');
         }
 
         // 마우스 & 터치 이벤트

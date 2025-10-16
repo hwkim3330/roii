@@ -761,11 +761,37 @@
             loader.load(
                 'roii.glb',
                 function (gltf) {
-                    console.log('GLB file loaded successfully');
+                    console.log('✅ GLB file loaded successfully');
                     const model = gltf.scene;
 
-                    // 모델 스케일 조정 (필요시)
-                    model.scale.set(10, 10, 10);
+                    // 바운딩 박스 계산
+                    const box = new THREE.Box3().setFromObject(model);
+                    const size = box.getSize(new THREE.Vector3());
+                    const center = box.getCenter(new THREE.Vector3());
+
+                    console.log('📦 Model dimensions:', {
+                        width: size.x.toFixed(2),
+                        height: size.y.toFixed(2),
+                        length: size.z.toFixed(2),
+                        center: {
+                            x: center.x.toFixed(2),
+                            y: center.y.toFixed(2),
+                            z: center.z.toFixed(2)
+                        }
+                    });
+
+                    // 모델을 원점으로 이동 (센터링)
+                    model.position.x = -center.x;
+                    model.position.y = -center.y;
+                    model.position.z = -center.z;
+
+                    // 목표 크기 (기존 박스 모델과 비슷하게)
+                    const targetSize = 40; // Z축 길이를 40 유닛으로
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = targetSize / maxDim;
+
+                    console.log('📐 Auto-scale factor:', scale.toFixed(3));
+                    model.scale.set(scale, scale, scale);
 
                     // 모든 메시에 대해 투명도 및 와이어프레임 설정
                     model.traverse((child) => {
@@ -803,7 +829,9 @@
                     group.add(model);
                     scene.add(group);
                     vehicleModel = group;
-                    showToast('3D vehicle model loaded');
+
+                    showToast('✅ 3D vehicle model loaded (auto-scaled)');
+                    console.log('🚗 Vehicle model ready');
                 },
                 function (xhr) {
                     console.log((xhr.loaded / xhr.total * 100) + '% loaded');

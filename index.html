@@ -603,7 +603,7 @@
         scene.fog = new THREE.Fog(0x0a0e1a, 50, 200);
 
         const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-        camera.position.set(0, 35, 60);
+        camera.position.set(50, 35, 70);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.shadowMap.enabled = true;
@@ -683,8 +683,8 @@
             group.userData.isVehicle = true;
             group.userData.label = 'Vehicle';
 
-            // 차체
-            const bodyGeo = new THREE.BoxGeometry(8, 3, 16);
+            // 차체 (더 큰 스케일)
+            const bodyGeo = new THREE.BoxGeometry(18, 5, 40);
             const bodyMat = new THREE.MeshPhongMaterial({
                 color: 0x1E293B,
                 shininess: 80,
@@ -692,7 +692,7 @@
                 opacity: 0.7
             });
             const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 1.5;
+            body.position.y = 2.5;
             body.castShadow = true;
             body.receiveShadow = true;
             group.add(body);
@@ -705,9 +705,9 @@
             group.add(bodyWireframe);
 
             // 캐빈 (차량 상단)
-            const cabinGeo = new THREE.BoxGeometry(6, 2, 8);
+            const cabinGeo = new THREE.BoxGeometry(14, 4, 20);
             const cabin = new THREE.Mesh(cabinGeo, bodyMat);
-            cabin.position.set(0, 3.5, -1);
+            cabin.position.set(0, 6.5, -2);
             cabin.castShadow = true;
             group.add(cabin);
 
@@ -717,9 +717,9 @@
             group.add(cabinWireframe);
 
             // 후드 (앞)
-            const hoodGeo = new THREE.BoxGeometry(7, 1.5, 4);
+            const hoodGeo = new THREE.BoxGeometry(16, 3, 10);
             const hood = new THREE.Mesh(hoodGeo, bodyMat);
-            hood.position.set(0, 1.5, 8);
+            hood.position.set(0, 2.5, 20);
             hood.castShadow = true;
             group.add(hood);
 
@@ -729,14 +729,14 @@
             group.add(hoodWireframe);
 
             // 바퀴
-            const wheelGeo = new THREE.CylinderGeometry(1.2, 1.2, 1.5, 16);
+            const wheelGeo = new THREE.CylinderGeometry(2.5, 2.5, 3, 16);
             const wheelMat = new THREE.MeshPhongMaterial({ color: 0x1A1A1A });
 
             const wheelPositions = [
-                [-4.5, 0.5, 5],   // 앞 왼쪽
-                [4.5, 0.5, 5],    // 앞 오른쪽
-                [-4.5, 0.5, -5],  // 뒤 왼쪽
-                [4.5, 0.5, -5]    // 뒤 오른쪽
+                [-10, 1.5, 12],   // 앞 왼쪽
+                [10, 1.5, 12],    // 앞 오른쪽
+                [-10, 1.5, -12],  // 뒤 왼쪽
+                [10, 1.5, -12]    // 뒤 오른쪽
             ];
 
             wheelPositions.forEach(pos => {
@@ -748,7 +748,7 @@
             });
 
             // 헤드라이트
-            const headlightGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 16);
+            const headlightGeo = new THREE.CylinderGeometry(1, 1, 0.5, 16);
             const headlightMat = new THREE.MeshPhongMaterial({
                 color: 0xFFFFFF,
                 emissive: 0x3B82F6,
@@ -757,12 +757,12 @@
 
             const headlight1 = new THREE.Mesh(headlightGeo, headlightMat);
             headlight1.rotation.x = Math.PI / 2;
-            headlight1.position.set(-2.5, 1.5, 10);
+            headlight1.position.set(-6, 2.5, 25);
             group.add(headlight1);
 
             const headlight2 = new THREE.Mesh(headlightGeo, headlightMat);
             headlight2.rotation.x = Math.PI / 2;
-            headlight2.position.set(2.5, 1.5, 10);
+            headlight2.position.set(6, 2.5, 25);
             group.add(headlight2);
 
             // 테일라이트
@@ -774,12 +774,12 @@
 
             const taillight1 = new THREE.Mesh(headlightGeo, taillightMat);
             taillight1.rotation.x = Math.PI / 2;
-            taillight1.position.set(-2.5, 1.5, -8);
+            taillight1.position.set(-6, 2.5, -20);
             group.add(taillight1);
 
             const taillight2 = new THREE.Mesh(headlightGeo, taillightMat);
             taillight2.rotation.x = Math.PI / 2;
-            taillight2.position.set(2.5, 1.5, -8);
+            taillight2.position.set(6, 2.5, -20);
             group.add(taillight2);
 
             // 차량 라벨
@@ -797,8 +797,8 @@
             const texture = new THREE.CanvasTexture(canvas);
             const spriteMat = new THREE.SpriteMaterial({ map: texture });
             const sprite = new THREE.Sprite(spriteMat);
-            sprite.scale.set(10, 2.5, 1);
-            sprite.position.y = 6;
+            sprite.scale.set(16, 4, 1);
+            sprite.position.y = 12;
             group.add(sprite);
 
             group.position.set(0, 0, 0);
@@ -816,7 +816,7 @@
                 ports: 4,
                 rj45Ports: 2,
                 sfpPorts: 2,
-                size: { w: 6, h: 2.5, d: 4 }
+                size: { w: 4, h: 2, d: 3 }
             },
             lan9692: {
                 label: 'LAN9692',
@@ -825,31 +825,31 @@
                 mateNetPorts: 7,
                 sfpPlusPorts: 4,
                 mgmtRj45: 1,
-                size: { w: 10, h: 3.5, d: 5 }
+                size: { w: 6, h: 2.5, d: 4 }
             },
             camera: {
                 label: 'Camera',
                 color: 0x06B6D4,
                 ports: 1,
-                size: { w: 2.5, h: 2.5, d: 2.5 }
+                size: { w: 1.2, h: 1.2, d: 1.2 }
             },
             lidar: {
                 label: 'LiDAR',
                 color: 0x10B981,
                 ports: 1,
-                size: { w: 3, h: 4, d: 3 }
+                size: { w: 2, h: 3, d: 2 }
             },
             radar: {
                 label: 'Radar',
                 color: 0xF59E0B,
                 ports: 1,
-                size: { w: 3, h: 2, d: 3 }
+                size: { w: 1.5, h: 1, d: 1.5 }
             },
             ecu: {
                 label: 'ECU',
                 color: 0x8B5CF6,
                 ports: 1,
-                size: { w: 4, h: 2, d: 3 }
+                size: { w: 3, h: 1.5, d: 2.5 }
             }
         };
 
@@ -927,14 +927,17 @@
             ctx.fillStyle = 'rgba(26, 26, 46, 0.9)';
             ctx.fillRect(0, 0, 512, 128);
             ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 56px Arial';
+            ctx.font = 'bold 48px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(device.label, 256, 80);
+            ctx.fillText(device.label, 256, 75);
 
             const texture = new THREE.CanvasTexture(canvas);
             const spriteMat = new THREE.SpriteMaterial({ map: texture });
             const sprite = new THREE.Sprite(spriteMat);
-            sprite.scale.set(8, 2, 1);
+
+            // 라벨 크기를 장치 크기에 비례하게 조정
+            const labelScale = Math.max(w, d) * 1.2;
+            sprite.scale.set(labelScale, labelScale * 0.25, 1);
             sprite.position.y = h + 1;
             group.add(sprite);
 
@@ -1019,70 +1022,78 @@
                 createVehicleModel();
             }
 
-            // Zone Controllers 배치 (차량 내부 - 중앙)
-            const zc1 = addDevice('lan9692', new THREE.Vector3(-6, 0, 0), 'Front-ZC');
-            const zc2 = addDevice('lan9692', new THREE.Vector3(6, 0, 0), 'Rear-ZC');
+            // Zone Controllers 배치 (차량 하부/내부)
+            const zc1 = addDevice('lan9692', new THREE.Vector3(-4, -1, 8), 'Front-ZC');
+            const zc2 = addDevice('lan9692', new THREE.Vector3(4, -1, -8), 'Rear-ZC');
 
-            // Front Cameras (전방)
-            const frontCam1 = addDevice('camera', new THREE.Vector3(-3, 0, 12), 'Front-Cam-L');
-            const frontCam2 = addDevice('camera', new THREE.Vector3(3, 0, 12), 'Front-Cam-R');
-            const frontCamCenter = addDevice('camera', new THREE.Vector3(0, 0, 14), 'Front-Cam-C');
+            // === 카메라 배치 ===
+            // 전방 카메라 - 앞유리 위 (windshield)
+            const frontCamCenter = addDevice('camera', new THREE.Vector3(0, 8.5, 10), 'Front-Cam-Center');
 
-            // Rear Camera (후방)
-            const rearCam = addDevice('camera', new THREE.Vector3(0, 0, -10), 'Rear-Cam');
+            // 전방 사이드 카메라 - 사이드 미러 위치
+            const frontCamL = addDevice('camera', new THREE.Vector3(-9, 5, 14), 'Front-Cam-L');
+            const frontCamR = addDevice('camera', new THREE.Vector3(9, 5, 14), 'Front-Cam-R');
 
-            // Side Cameras (측면)
-            const leftCam = addDevice('camera', new THREE.Vector3(-10, 0, 0), 'Left-Cam');
-            const rightCam = addDevice('camera', new THREE.Vector3(10, 0, 0), 'Right-Cam');
+            // 후방 카메라 - 트렁크/테일게이트
+            const rearCam = addDevice('camera', new THREE.Vector3(0, 3.5, -20.5), 'Rear-Cam');
 
-            // LiDAR (상단 - 시각적으로 높게)
-            const lidarTop = addDevice('lidar', new THREE.Vector3(0, 5, 2), 'Roof-LiDAR');
+            // 측면 카메라 - 사이드 미러
+            const leftCam = addDevice('camera', new THREE.Vector3(-9.5, 5, 0), 'Left-Mirror-Cam');
+            const rightCam = addDevice('camera', new THREE.Vector3(9.5, 5, 0), 'Right-Mirror-Cam');
 
-            // Front Radars (전방 코너)
-            const frontRadarL = addDevice('radar', new THREE.Vector3(-5, 0, 10), 'Front-Radar-L');
-            const frontRadarR = addDevice('radar', new THREE.Vector3(5, 0, 10), 'Front-Radar-R');
+            // === 레이더 배치 ===
+            // 전방 레이더 - 전방 범퍼 코너
+            const frontRadarL = addDevice('radar', new THREE.Vector3(-8, 1.5, 25), 'Front-Radar-L');
+            const frontRadarR = addDevice('radar', new THREE.Vector3(8, 1.5, 25), 'Front-Radar-R');
 
-            // Rear Radars (후방 코너)
-            const rearRadarL = addDevice('radar', new THREE.Vector3(-5, 0, -8), 'Rear-Radar-L');
-            const rearRadarR = addDevice('radar', new THREE.Vector3(5, 0, -8), 'Rear-Radar-R');
+            // 후방 레이더 - 후방 범퍼 코너
+            const rearRadarL = addDevice('radar', new THREE.Vector3(-8, 1.5, -20), 'Rear-Radar-L');
+            const rearRadarR = addDevice('radar', new THREE.Vector3(8, 1.5, -20), 'Rear-Radar-R');
 
-            // Side Radars (측면)
-            const leftRadar = addDevice('radar', new THREE.Vector3(-8, 0, 2), 'Left-Radar');
-            const rightRadar = addDevice('radar', new THREE.Vector3(8, 0, 2), 'Right-Radar');
+            // 측면 레이더 - 차체 측면
+            const leftRadarFront = addDevice('radar', new THREE.Vector3(-9.5, 2.5, 8), 'Left-Radar-F');
+            const leftRadarRear = addDevice('radar', new THREE.Vector3(-9.5, 2.5, -8), 'Left-Radar-R');
+            const rightRadarFront = addDevice('radar', new THREE.Vector3(9.5, 2.5, 8), 'Right-Radar-F');
+            const rightRadarRear = addDevice('radar', new THREE.Vector3(9.5, 2.5, -8), 'Right-Radar-R');
 
-            // ECUs (차량 내부)
-            const ecu1 = addDevice('ecu', new THREE.Vector3(-3, 0, -3), 'ADAS-ECU');
-            const ecu2 = addDevice('ecu', new THREE.Vector3(3, 0, -3), 'Chassis-ECU');
+            // === LiDAR - 루프 상단 ===
+            const lidarTop = addDevice('lidar', new THREE.Vector3(0, 10.5, 0), 'Roof-LiDAR');
 
-            // 연결: Front Zone Controller
-            createConnection(zc1, frontCam1);
-            createConnection(zc1, frontCam2);
+            // === ECUs - 차량 하부 ===
+            const ecu1 = addDevice('ecu', new THREE.Vector3(-3, -1, -12), 'ADAS-ECU');
+            const ecu2 = addDevice('ecu', new THREE.Vector3(3, -1, -12), 'Chassis-ECU');
+
+            // === 연결: Front Zone Controller (전방 영역) ===
             createConnection(zc1, frontCamCenter);
+            createConnection(zc1, frontCamL);
+            createConnection(zc1, frontCamR);
             createConnection(zc1, leftCam);
             createConnection(zc1, frontRadarL);
             createConnection(zc1, frontRadarR);
-            createConnection(zc1, leftRadar);
+            createConnection(zc1, leftRadarFront);
+            createConnection(zc1, rightRadarFront);
             createConnection(zc1, lidarTop);
 
-            // 연결: Rear Zone Controller
+            // === 연결: Rear Zone Controller (후방 영역) ===
             createConnection(zc2, rearCam);
             createConnection(zc2, rightCam);
             createConnection(zc2, rearRadarL);
             createConnection(zc2, rearRadarR);
-            createConnection(zc2, rightRadar);
+            createConnection(zc2, leftRadarRear);
+            createConnection(zc2, rightRadarRear);
 
-            // 연결: Zone Controllers to ECUs
+            // === 연결: Zone Controllers to ECUs ===
             createConnection(zc1, ecu1);
             createConnection(zc2, ecu2);
             createConnection(zc1, zc2);
 
             // 카메라 위치 조정 (전체 차량이 보이도록)
-            camera.position.set(30, 25, 40);
+            camera.position.set(50, 35, 70);
             controls.target.set(0, 0, 0);
             controls.update();
 
             updateStats();
-            showToast('🚗 Vehicle scenario loaded - Automotive zone architecture');
+            showToast('🚗 Vehicle scenario loaded - Realistic sensor placement');
         }
 
         // 마우스 & 터치 이벤트
@@ -1408,7 +1419,7 @@
         });
 
         document.getElementById('resetBtn').addEventListener('click', () => {
-            camera.position.set(30, 25, 40);
+            camera.position.set(50, 35, 70);
             controls.target.set(0, 0, 0);
             controls.update();
         });

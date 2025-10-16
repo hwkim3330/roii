@@ -759,7 +759,7 @@
             // GLTFLoader로 roii.glb 로드 시도
             const loader = new THREE.GLTFLoader();
             loader.load(
-                'roii.glb',
+                './roii.glb',
                 function (gltf) {
                     console.log('✅ GLB file loaded successfully');
                     const model = gltf.scene;
@@ -1026,7 +1026,58 @@
             return device;
         }
 
-        // 연결 생성
+        // 빛나는 Tube 연결 생성
+        function createGlowingTube(from, to, color = 0x3B82F6) {
+            const curve = new THREE.CatmullRomCurve3([
+                from.clone(),
+                to.clone()
+            ]);
+
+            // Inner glowing tube
+            const tubeGeo = new THREE.TubeGeometry(curve, 20, 0.08, 8, false);
+            const tubeMat = new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.6,
+                transparent: true,
+                opacity: 0.8
+            });
+            const tube = new THREE.Mesh(tubeGeo, tubeMat);
+            tube.castShadow = false;
+
+            // Outer glow halo
+            const glowGeo = new THREE.TubeGeometry(curve, 20, 0.15, 8, false);
+            const glowMat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.2
+            });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+
+            return { tube, glow, curve };
+        }
+
+        // 흐르는 파티클 생성
+        function createFlowParticles(curve, color = 0x00BCD4, count = 3) {
+            const particles = [];
+            for (let i = 0; i < count; i++) {
+                const particleGeo = new THREE.SphereGeometry(0.12, 8, 8);
+                const particleMat = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                const particle = new THREE.Mesh(particleGeo, particleMat);
+                particle.userData.progress = i / count;
+                particle.userData.curve = curve;
+                particle.userData.speed = 0.008 + Math.random() * 0.004;
+                particles.push(particle);
+                scene.add(particle);
+            }
+            return particles;
+        }
+
+        // 연결 생성 (Glowing Tube + Particles)
         function createConnection(from, to) {
             // 중복 체크
             const exists = state.connections.some(conn =>
@@ -1038,25 +1089,50 @@
                 return;
             }
 
-            const points = [from.position, to.position];
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({
-                color: 0x3B82F6,
-                linewidth: 3
-            });
-            const line = new THREE.Line(geometry, material);
+            // Priority에 따른 색상 설정
+            const color = from.type === 'lidar' || to.type === 'lidar' ? 0x10B981 :
+                         from.type === 'lan9692' || to.type === 'lan9692' ? 0xFFD700 : 0x3B82F6;
 
-            const conn = { from, to, line };
+            const { tube, glow, curve } = createGlowingTube(from.position, to.position, color);
+            const particles = createFlowParticles(curve, color === 0xFFD700 ? 0xFFF4CC : 0x00BCD4, 3);
+
+            scene.add(tube);
+            scene.add(glow);
+
+            const conn = {
+                from,
+                to,
+                tube,
+                glow,
+                curve,
+                particles,
+                color
+            };
             state.connections.push(conn);
-            scene.add(line);
             updateStats();
         }
 
         // 연결 업데이트
         function updateConnections() {
             state.connections.forEach(conn => {
-                const points = [conn.from.position, conn.to.position];
-                conn.line.geometry.setFromPoints(points);
+                // Remove old geometry
+                if (conn.tube) {
+                    scene.remove(conn.tube);
+                    scene.remove(conn.glow);
+                    conn.particles.forEach(p => scene.remove(p));
+                }
+
+                // Create new geometry with updated positions
+                const { tube, glow, curve } = createGlowingTube(conn.from.position, conn.to.position, conn.color);
+                const particles = createFlowParticles(curve, conn.color === 0xFFD700 ? 0xFFF4CC : 0x00BCD4, 3);
+
+                scene.add(tube);
+                scene.add(glow);
+
+                conn.tube = tube;
+                conn.glow = glow;
+                conn.curve = curve;
+                conn.particles = particles;
             });
         }
 
@@ -1490,7 +1566,12 @@
             if (state.selected) {
                 state.connections = state.connections.filter(conn => {
                     if (conn.from.id === state.selected.id || conn.to.id === state.selected.id) {
-                        scene.remove(conn.line);
+                        // Remove all connection components
+                        if (conn.tube) scene.remove(conn.tube);
+                        if (conn.glow) scene.remove(conn.glow);
+                        if (conn.particles) {
+                            conn.particles.forEach(p => scene.remove(p));
+                        }
                         return false;
                     }
                     return true;
@@ -1576,6 +1657,33 @@
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
+
+            // 파티클 애니메이션 (경로를 따라 흐름)
+            state.connections.forEach(conn => {
+                if (conn.particles) {
+                    conn.particles.forEach(particle => {
+                        particle.userData.progress += particle.userData.speed;
+                        if (particle.userData.progress > 1) {
+                            particle.userData.progress = 0;
+                        }
+
+                        // 곡선을 따라 파티클 위치 업데이트
+                        const point = particle.userData.curve.getPoint(particle.userData.progress);
+                        particle.position.copy(point);
+
+                        // Fade in/out effect
+                        particle.material.opacity = Math.sin(particle.userData.progress * Math.PI) * 0.9 + 0.1;
+                        particle.scale.setScalar(1 + Math.sin(particle.userData.progress * Math.PI * 2) * 0.3);
+                    });
+                }
+
+                // Tube glow pulse
+                if (conn.tube && conn.tube.material) {
+                    conn.tube.material.emissiveIntensity = 0.5 + Math.sin(Date.now() * 0.002) * 0.2;
+                    conn.glow.material.opacity = 0.15 + Math.sin(Date.now() * 0.003) * 0.1;
+                }
+            });
+
             renderer.render(scene, camera);
         }
 

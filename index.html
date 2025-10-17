@@ -18,7 +18,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
             overflow: hidden;
         }
 
@@ -31,14 +31,14 @@
         /* 헤더 */
         .header {
             height: 72px;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 32px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             z-index: 100;
         }
 
@@ -64,7 +64,7 @@
 
         .title-group p {
             font-size: 12px;
-            color: #94A3B8;
+            color: #64748B;
         }
 
         .stats {
@@ -86,7 +86,7 @@
 
         .stat-label {
             font-size: 11px;
-            color: #94A3B8;
+            color: #64748B;
             text-transform: uppercase;
             margin-top: 4px;
         }
@@ -127,9 +127,9 @@
         /* 사이드바 */
         .sidebar {
             width: 360px;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(59, 130, 246, 0.3);
+            border-right: 1px solid rgba(59, 130, 246, 0.15);
             overflow-y: auto;
         }
 
@@ -148,8 +148,8 @@
         }
 
         .device-card {
-            background: rgba(30, 41, 59, 0.6);
-            border: 2px solid rgba(59, 130, 246, 0.3);
+            background: rgba(248, 250, 252, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.2);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
@@ -160,8 +160,8 @@
         .device-card:hover {
             border-color: #3B82F6;
             transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+            background: rgba(255, 255, 255, 1);
         }
 
         .device-header {
@@ -185,22 +185,22 @@
         .device-info h3 {
             font-size: 15px;
             font-weight: 700;
-            color: #E2E8F0;
+            color: #1e293b;
             margin-bottom: 4px;
         }
 
         .device-info p {
             font-size: 12px;
-            color: #94A3B8;
+            color: #64748B;
         }
 
         .device-specs {
-            background: rgba(15, 23, 42, 0.5);
+            background: rgba(241, 245, 249, 0.8);
             padding: 12px;
             border-radius: 8px;
             font-size: 11px;
             line-height: 1.6;
-            color: #94A3B8;
+            color: #475569;
         }
 
         /* 캔버스 */
@@ -222,25 +222,26 @@
             transform: translateX(-50%);
             display: flex;
             gap: 12px;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             padding: 12px;
             border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
         .control-btn {
             width: 48px;
             height: 48px;
             border-radius: 10px;
-            background: rgba(30, 41, 59, 0.6);
-            border: 2px solid rgba(59, 130, 246, 0.3);
+            background: rgba(248, 250, 252, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s;
             font-size: 20px;
+            touch-action: manipulation;
         }
 
         .control-btn:hover {
@@ -258,9 +259,9 @@
         /* 프로퍼티 패널 */
         .properties {
             width: 420px;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(59, 130, 246, 0.3);
+            border-left: 1px solid rgba(59, 130, 246, 0.2);
             transform: translateX(100%);
             transition: transform 0.3s;
             position: absolute;
@@ -288,7 +289,7 @@
         .properties-title {
             font-size: 16px;
             font-weight: 700;
-            color: #E2E8F0;
+            color: #1e293b;
         }
 
         .close-btn {
@@ -299,7 +300,8 @@
             border: none;
             cursor: pointer;
             font-size: 18px;
-            color: #94A3B8;
+            color: #64748B;
+            touch-action: manipulation;
         }
 
         .properties-content {
@@ -329,16 +331,16 @@
             display: block;
             font-size: 12px;
             font-weight: 600;
-            color: #E2E8F0;
+            color: #1e293b;
             margin-bottom: 8px;
         }
 
         .form-input {
             width: 100%;
             padding: 10px 14px;
-            border: 2px solid rgba(59, 130, 246, 0.3);
-            background: rgba(30, 41, 59, 0.6);
-            color: #E2E8F0;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            background: rgba(248, 250, 252, 0.8);
+            color: #1e293b;
             border-radius: 8px;
             font-size: 13px;
         }
@@ -350,8 +352,8 @@
 
         .port-detail-card {
             padding: 14px;
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            background: rgba(241, 245, 249, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.15);
             border-radius: 8px;
             margin-bottom: 10px;
         }
@@ -366,12 +368,12 @@
         .port-detail-name {
             font-size: 13px;
             font-weight: 600;
-            color: #E2E8F0;
+            color: #1e293b;
         }
 
         .port-detail-info {
             font-size: 11px;
-            color: #94A3B8;
+            color: #64748B;
             line-height: 1.6;
         }
 
@@ -393,7 +395,7 @@
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             padding: 14px 28px;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(59, 130, 246, 0.95);
             color: white;
             border-radius: 8px;
             font-weight: 500;
@@ -401,7 +403,8 @@
             opacity: 0;
             transition: all 0.3s;
             z-index: 1000;
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .toast.visible {
@@ -415,23 +418,23 @@
             left: 50%;
             transform: translateX(-50%);
             padding: 12px 24px;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 8px;
             font-size: 12px;
-            color: #94A3B8;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #475569;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
         .opacity-control {
             position: absolute;
             top: 24px;
             right: 24px;
-            background: rgba(26, 26, 46, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             padding: 16px 20px;
             border-radius: 12px;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
             min-width: 200px;
         }
 
@@ -448,7 +451,7 @@
         }
 
         .opacity-value {
-            color: #E2E8F0;
+            color: #1e293b;
             font-weight: 600;
         }
 
@@ -484,8 +487,20 @@
         }
 
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.8); }
         ::-webkit-scrollbar-thumb { background: #3B82F6; border-radius: 4px; }
+
+        /* 터치 최적화 */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        button, .control-btn, .device-card {
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -669,8 +684,8 @@
     <script>
         // Three.js 초기화
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0e1a);
-        scene.fog = new THREE.Fog(0x0a0e1a, 50, 200);
+        scene.background = new THREE.Color(0xf0f0f0);
+        scene.fog = new THREE.Fog(0xf0f0f0, 80, 250);
 
         const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
         camera.position.set(50, 35, 70);
@@ -703,11 +718,11 @@
             RIGHT: THREE.MOUSE.ROTATE
         };
 
-        // 조명
-        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.4);
+        // 조명 (밝게 최적화)
+        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1.2);
         scene.add(ambientLight);
 
-        const mainLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
+        const mainLight = new THREE.DirectionalLight(0xFFFFFF, 1.5);
         mainLight.position.set(30, 50, 30);
         mainLight.castShadow = true;
         mainLight.shadow.mapSize.width = 2048;
@@ -720,18 +735,23 @@
         mainLight.shadow.camera.bottom = -60;
         scene.add(mainLight);
 
-        // Blue accent lights
-        const blueLight1 = new THREE.PointLight(0x3B82F6, 1, 100);
+        // 추가 Fill Light (위에서 아래로 - 모델 밝게)
+        const fillLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+        fillLight.position.set(0, 50, 0);
+        scene.add(fillLight);
+
+        // Blue accent lights (밝게)
+        const blueLight1 = new THREE.PointLight(0x3B82F6, 2, 100);
         blueLight1.position.set(20, 15, 20);
         scene.add(blueLight1);
 
-        const blueLight2 = new THREE.PointLight(0x06B6D4, 0.8, 80);
+        const blueLight2 = new THREE.PointLight(0x06B6D4, 1.5, 80);
         blueLight2.position.set(-20, 15, -20);
         scene.add(blueLight2);
 
-        // 그리드
-        const gridHelper = new THREE.GridHelper(100, 50, 0x3B82F6, 0x1E293B);
-        gridHelper.material.opacity = 0.3;
+        // 그리드 (밝은 배경에 맞게)
+        const gridHelper = new THREE.GridHelper(100, 50, 0x3B82F6, 0xCCCCCC);
+        gridHelper.material.opacity = 0.4;
         gridHelper.material.transparent = true;
         gridHelper.position.y = -0.5;
         scene.add(gridHelper);
@@ -780,11 +800,6 @@
                         }
                     });
 
-                    // 모델을 원점으로 이동 (센터링)
-                    model.position.x = -center.x;
-                    model.position.y = -center.y;
-                    model.position.z = -center.z;
-
                     // 목표 크기 (기존 박스 모델과 비슷하게)
                     const targetSize = 40; // Z축 길이를 40 유닛으로
                     const maxDim = Math.max(size.x, size.y, size.z);
@@ -792,6 +807,15 @@
 
                     console.log('📐 Auto-scale factor:', scale.toFixed(3));
                     model.scale.set(scale, scale, scale);
+
+                    // 모델을 원점으로 이동 + Y축 오프셋 (바닥 위로 올림)
+                    // 그라운드 평면이 y = -0.5이므로, 모델 하단이 평면에 닿도록 조정
+                    const scaledHeight = size.y * scale;
+                    model.position.x = -center.x;
+                    model.position.y = -center.y + (scaledHeight * 0.5) + 0.5; // 하단을 평면 위로
+                    model.position.z = -center.z;
+
+                    console.log('🔧 Model lifted to:', model.position.y.toFixed(2));
 
                     // 모든 메시에 대해 텍스처만 보이게 + 투명도 설정
                     console.log('🔍 Model Structure Analysis:');
@@ -1242,11 +1266,11 @@
             const frontZC = addDevice('lan9662', new THREE.Vector3(0, -1, 10), 'Front-ZC');
             const rearZC = addDevice('lan9662', new THREE.Vector3(0, -1, -10), 'Rear-ZC');
 
-            // === LiDAR 4개 (사이드미러 코너 배치 - 360° 커버리지) ===
-            const lidarFL = addDevice('lidar', new THREE.Vector3(-9, 11, 17), 'LiDAR-FL');
-            const lidarFR = addDevice('lidar', new THREE.Vector3(9, 11, 17), 'LiDAR-FR');
-            const lidarRL = addDevice('lidar', new THREE.Vector3(-9, 9, -17), 'LiDAR-RL');
-            const lidarRR = addDevice('lidar', new THREE.Vector3(9, 9, -17), 'LiDAR-RR');
+            // === LiDAR 4개 (루프 코너 배치 - 360° 커버리지) ===
+            const lidarFL = addDevice('lidar', new THREE.Vector3(-9, 10, 18), 'LiDAR-FL');
+            const lidarFR = addDevice('lidar', new THREE.Vector3(9, 10, 18), 'LiDAR-FR');
+            const lidarRL = addDevice('lidar', new THREE.Vector3(-9, 10, -18), 'LiDAR-RL');
+            const lidarRR = addDevice('lidar', new THREE.Vector3(9, 10, -18), 'LiDAR-RR');
 
             // === CAMERA 8개 (전방 3 + 측면 2 + 후방 3) ===
             // Front Cameras (3)

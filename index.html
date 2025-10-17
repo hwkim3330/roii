@@ -808,13 +808,14 @@
                     console.log('📐 Auto-scale factor:', scale.toFixed(3));
                     model.scale.set(scale, scale, scale);
 
-                    // 모델을 원점으로 이동 + Y축 조정 (바닥에 맞춤)
-                    // 그라운드 평면이 y = -0.5이므로, 모델을 바닥에 놓기
+                    // 모델을 원점으로 이동 + Y축 조정 (올려서 배치)
+                    // 그라운드 평면이 y = -0.5이므로, 모델 하단을 평면 위로
+                    const scaledHeight = size.y * scale;
                     model.position.x = -center.x;
-                    model.position.y = -center.y; // 바닥 레벨로
+                    model.position.y = -center.y + (scaledHeight * 0.5) + 0.5; // 하단을 평면 위로 올림
                     model.position.z = -center.z;
 
-                    console.log('🔧 Model positioned at Y:', model.position.y.toFixed(2));
+                    console.log('🔧 Model lifted to Y:', model.position.y.toFixed(2));
 
                     // 모든 메시에 대해 텍스처만 보이게 + 투명도 설정
                     console.log('🔍 Model Structure Analysis:');
@@ -985,8 +986,8 @@
                 const isBoxType = device.label.includes('Center');
 
                 if (isBoxType) {
-                    // 박스형 LiDAR (앞뒤 중앙)
-                    geometry = new THREE.BoxGeometry(w, h, d);
+                    // 박스형 LiDAR (앞뒤 중앙) - 크기 절반
+                    geometry = new THREE.BoxGeometry(w * 0.5, h * 0.5, d * 0.5);
                     const material = new THREE.MeshPhongMaterial({
                         color: template.color,
                         shininess: 80,
@@ -1297,9 +1298,9 @@
             // 원통형 2개: 앞쪽 좌우 사이드
             const lidarFL = addDevice('lidar', new THREE.Vector3(-9, 10, 18), 'LiDAR-Front-Left');
             const lidarFR = addDevice('lidar', new THREE.Vector3(9, 10, 18), 'LiDAR-Front-Right');
-            // 박스형 2개: 앞뒤 중앙
-            const lidarFrontCenter = addDevice('lidar', new THREE.Vector3(0, 10, 20), 'LiDAR-Front-Center');
-            const lidarRearCenter = addDevice('lidar', new THREE.Vector3(0, 10, -20), 'LiDAR-Rear-Center');
+            // 박스형 2개: 앞뒤 중앙 (작고 낮게)
+            const lidarFrontCenter = addDevice('lidar', new THREE.Vector3(0, 6, 20), 'LiDAR-Front-Center');
+            const lidarRearCenter = addDevice('lidar', new THREE.Vector3(0, 6, -20), 'LiDAR-Rear-Center');
 
             // === CAMERA 8개 (전방 3 + 측면 2 + 후방 3) ===
             // Front Cameras (3)
